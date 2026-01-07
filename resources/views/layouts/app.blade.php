@@ -28,6 +28,10 @@
             #page-content-wrapper { margin-left: 0; width: 100%; }
             body.toggled #sidebar-wrapper { margin-left: 0; }
         }
+
+        /* Make toggled behavior work on all screen sizes */
+        body.toggled #sidebar-wrapper { margin-left: calc(-1 * var(--sidebar-width)); transition: margin-left 0.25s ease; }
+        body.toggled #page-content-wrapper { margin-left: 0; width: 100%; transition: margin-left 0.25s ease, width 0.25s ease; }
     </style>
     @stack('styles') {{-- Extra CSS ke liye --}}
 </head>
@@ -39,7 +43,7 @@
     <div id="page-content-wrapper">
         <nav class="navbar navbar-expand-lg navbar-light border-bottom">
             <div class="container-fluid">
-                <button class="btn btn-light border" id="menu-toggle"><i class="fas fa-bars"></i></button>
+                <button class="btn btn-light border" id="menu-toggle" aria-expanded="false" aria-controls="sidebar-wrapper"><i class="fas fa-bars"></i></button>
                 <div class="ms-auto d-flex align-items-center">
                     <div class="dropdown">
                         <button class="btn d-flex align-items-center gap-2 border-0" type="button" data-bs-toggle="dropdown">
@@ -76,9 +80,28 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    document.getElementById("menu-toggle").addEventListener("click", function() {
-        document.body.classList.toggle("toggled");
-    });
+    (function(){
+        const menuToggle = document.getElementById('menu-toggle');
+        if (!menuToggle) return;
+
+        const setCollapsed = (collapsed) => {
+            document.body.classList.toggle('toggled', collapsed);
+            menuToggle.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
+            try { localStorage.setItem('sidebar-collapsed', collapsed ? '1' : '0'); } catch (e) { /* ignore */ }
+        };
+
+        // Initialize from storage if available
+        const stored = (function(){ try { return localStorage.getItem('sidebar-collapsed'); } catch (e) { return null; }})();
+        if (stored !== null) {
+            setCollapsed(stored === '1');
+        }
+
+        menuToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            const next = !document.body.classList.contains('toggled');
+            setCollapsed(next);
+        });
+    })();
 </script>
 @stack('scripts')
 </body>
