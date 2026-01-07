@@ -62,13 +62,13 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="opacity-75 small fw-bold text-uppercase">Fees Collected</h6>
-                        <h3 class="fw-bold mb-0">Rs. {{ number_format($totalFees ?? 0) }}</h3>
+                        <h3 class="fw-bold mb-0">Rs. <span id="totalFees">{{ number_format($totalFees ?? 0) }}</span></h3>
                     </div>
                     <i class="fas fa-hand-holding-usd fs-1 opacity-25"></i>
                 </div>
                 <div class="mt-2 pt-2 border-top border-white border-opacity-10">
                     <span class="small opacity-75 fw-bold">
-                        <i class="fas fa-clock me-1"></i> Pending: Rs. {{ number_format($pendingFees ?? 0) }}
+                        <i class="fas fa-clock me-1"></i> Pending: Rs. <span id="pendingFees">{{ number_format($pendingFees ?? 0) }}</span>
                     </span>
                 </div>
             </div>
@@ -87,6 +87,9 @@
                 </a>
                 <a href="{{ route('courses.create') }}" class="btn btn-white border shadow-sm rounded-3 px-3">
                     <i class="fas fa-plus-circle text-info me-2"></i>New Course
+                </a>
+                <a href="{{ route('fees.create') }}" class="btn btn-white border shadow-sm rounded-3 px-3">
+                    <i class="fas fa-plus-circle text-info me-2"></i>New Fee Record
                 </a>
                 <a href="#" class="btn btn-white border shadow-sm rounded-3 px-3">
                     <i class="fas fa-print text-muted me-2"></i>Generate Reports
@@ -126,9 +129,27 @@
     }
 
     // poll every 5 seconds while dashboard is open
+    async function updateFeesStats() {
+        try {
+            const res = await fetch('/stats/fees');
+            if (!res.ok) throw new Error('Network response was not ok');
+            const data = await res.json();
+            const elTotal = document.getElementById('totalFees');
+            const elPending = document.getElementById('pendingFees');
+            const currentTotal = parseInt(elTotal.textContent.replace(/,/g, '')) || 0;
+            const currentPending = parseInt(elPending.textContent.replace(/,/g, '')) || 0;
+            animateValue('totalFees', currentTotal, data.totalFees, 800);
+            animateValue('pendingFees', currentPending, data.pendingFees, 800);
+        } catch (err) {
+            console.error('failed to fetch fees stats', err);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         updateCoursesCount();
         setInterval(updateCoursesCount, 5000);
+        updateFeesStats();
+        setInterval(updateFeesStats, 5000);
     });
 </script>
 @endpush

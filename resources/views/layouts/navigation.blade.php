@@ -112,7 +112,7 @@
 
         <div class="nav-label">Finance</div>
 
-        <a href="#" class="sidebar-link {{ request()->routeIs('fees.*') ? 'active' : '' }}">
+        <a href="{{ route('fees.index') }}" class="sidebar-link {{ request()->routeIs('fees.*') ? 'active' : '' }}">
             <i class="fas fa-file-invoice-dollar"></i> Fee Management
         </a>
 
