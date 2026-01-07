@@ -21,7 +21,14 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
+
+    public function isAdminOrTeacher(): bool
+    {
+        // include 'staff' as permitted to manage roll call
+        return in_array($this->role, ['admin', 'teacher', 'staff']);
+    }
 
     /**
      * The attributes that should be hidden for serialization.

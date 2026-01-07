@@ -84,6 +84,13 @@ Route::get('/stats/attendance', function () {
     return response()->json(['present' => $present, 'absent' => $absent, 'percentage' => $percentage]);
 });
 
+// Roll Call UI and API
+use App\Http\Controllers\AttendanceController;
+Route::get('/attendance/export', [AttendanceController::class, 'export'])->name('attendance.export')->middleware('auth');
+Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index')->middleware('auth');
+Route::post('/attendance', [AttendanceController::class, 'store'])->name('attendance.store')->middleware('auth');
+Route::post('/attendance/bulk', [AttendanceController::class, 'bulk'])->name('attendance.bulk')->middleware('auth');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

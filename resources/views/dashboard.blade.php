@@ -97,9 +97,16 @@
                         <h5 class="fw-black mb-1">Today's Attendance</h5>
                         <p class="text-muted small mb-0">Live tracking for {{ date('M d, Y') }}</p>
                     </div>
-                    <a href="#" class="btn btn-soft-primary btn-sm rounded-pill px-3 fw-bold">Manage Roll Call</a>
+                    @auth
+                        @if(auth()->user()->isAdminOrTeacher())
+                            <a href="{{ route('attendance.index') }}" class="btn btn-soft-primary btn-sm rounded-pill px-3 fw-bold">Manage Roll Call</a>
+                        @else
+                            <button class="btn btn-soft-primary btn-sm rounded-pill px-3 fw-bold" disabled title="Only admins and teachers can access Roll Call">Manage Roll Call</button>
+                        @endif
+                    @else
+                        <a href="{{ route('login') }}" class="btn btn-soft-primary btn-sm rounded-pill px-3 fw-bold">Manage Roll Call (Login)</a>
+                    @endauth
                 </div>
-
                 <div class="row align-items-center">
                     <div class="col-md-6 text-center border-end">
                         <div class="position-relative d-inline-block">
@@ -218,7 +225,7 @@
                         </a>
                     </div>
                     <div class="col-6 text-center">
-                        <a href="#" class="action-btn-modern">
+                        <a href="#" id="quickReportsBtn" class="action-btn-modern" role="button" aria-label="Generate Reports">
                             <div class="btn-icon bg-soft-danger"><i class="fas fa-print"></i></div>
                             <span>Reports</span>
                         </a>
@@ -378,6 +385,54 @@
     document.addEventListener('DOMContentLoaded', () => {
         updateAttendance();
         setInterval(updateAttendance, 5000);
+
+        // Quick Reports button: prompt for type and call POST /reports/fees
+        const reportBtn = document.getElementById('quickReportsBtn');
+        if (reportBtn) {
+            reportBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                let type = prompt('Enter report type (pdf or excel)', 'pdf');
+                if (!type) return;
+                type = type.trim().toLowerCase();
+                if (!['pdf', 'excel'].includes(type)) {
+                    alert('Invalid report type. Please enter "pdf" or "excel".');
+                    return;
+                }
+
+                // simple UI feedback
+                reportBtn.classList.add('disabled');
+                reportBtn.style.opacity = '0.6';
+
+                try {
+                    const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    const res = await fetch('/reports/fees', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': token,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ type })
+                    });
+
+                    if (!res.ok) throw new Error('Failed to generate report');
+                    const data = await res.json();
+
+                    // start download (controller returns a route to download)
+                    if (data.file) {
+                        window.location = data.file;
+                    } else {
+                        alert('Report generated but could not find the download link.');
+                    }
+                } catch (err) {
+                    console.error('Report generation failed', err);
+                    alert('Could not generate report. See console for details.');
+                } finally {
+                    reportBtn.classList.remove('disabled');
+                    reportBtn.style.opacity = '';
+                }
+            });
+        }
     });
 </script>
 @endpush
