@@ -20,6 +20,13 @@ class FeeController extends Controller
         return view('fees.create', compact('students'));
     }
 
+    // Provide a simple handler for the resource 'show' route so it doesn't crash
+    // We'll redirect to the edit page for now; add a dedicated show view later if needed.
+    public function show(Fee $fee)
+    {
+        return redirect()->route('fees.edit', $fee);
+    }
+
     public function store(Request $request)
 {
     $request->validate([
@@ -48,6 +55,36 @@ class FeeController extends Controller
     ]);
 
     return redirect()->route('fees.index')->with('success', 'Fee added successfully');
+}
+public function export(Request $request)
+{
+    $fees = Fee::with('student')->orderBy('created_at', 'desc')->get();
+
+    $filename = 'fees_' . now()->format('Ymd_His') . '.csv';
+    $headers = [
+        'Content-Type' => 'text/csv',
+        'Content-Disposition' => "attachment; filename=\"$filename\"",
+    ];
+
+    $callback = function () use ($fees) {
+        $file = fopen('php://output', 'w');
+        fputcsv($file, ['ID','Student','Amount','Paid','Remaining','Status','Due Date','Created At']);
+        foreach ($fees as $fee) {
+            fputcsv($file, [
+                $fee->id,
+                $fee->student->name ?? '',
+                $fee->amount,
+                $fee->paid_amount,
+                $fee->remaining,
+                $fee->status,
+                $fee->due_date,
+                $fee->created_at,
+            ]);
+        }
+        fclose($file);
+    };
+
+    return response()->stream($callback, 200, $headers);
 }
 
     public function edit(Fee $fee)

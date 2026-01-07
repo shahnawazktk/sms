@@ -91,9 +91,15 @@
                 <a href="{{ route('fees.create') }}" class="btn btn-white border shadow-sm rounded-3 px-3">
                     <i class="fas fa-plus-circle text-info me-2"></i>New Fee Record
                 </a>
-                <a href="#" class="btn btn-white border shadow-sm rounded-3 px-3">
-                    <i class="fas fa-print text-muted me-2"></i>Generate Reports
-                </a>
+                <div class="dropdown">
+                    <button class="btn btn-white border shadow-sm rounded-3 px-3 dropdown-toggle" type="button" id="reportsMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-print text-muted me-2"></i>Generate Reports
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="reportsMenu">
+                        <li><a class="dropdown-item" href="#" onclick="generateReport('pdf')">Download PDF</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="generateReport('excel')">Download Excel</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -151,5 +157,28 @@
         updateFeesStats();
         setInterval(updateFeesStats, 5000);
     });
+
+    async function generateReport(type) {
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const btnText = type === 'pdf' ? 'PDF' : 'Excel';
+            const res = await fetch('{{ route('reports.fees') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ type })
+            });
+            if (!res.ok) throw new Error('Server error');
+            const data = await res.json();
+            // Trigger download
+            window.location = data.file;
+        } catch (err) {
+            console.error('Failed to generate report', err);
+            alert('Failed to generate report. Check console for details.');
+        }
+    }
 </script>
 @endpush

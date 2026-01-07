@@ -12,9 +12,9 @@
         </nav>
     </div>
     <div class="d-flex gap-2">
-        <button class="btn btn-light border px-4 py-2 rounded-3 shadow-sm">
-            <i class="fas fa-file-export me-2"></i> Export
-        </button>
+        <a href="{{ route('fees.export') }}" class="btn btn-light border px-4 py-2 rounded-3 shadow-sm">
+    <i class="fas fa-file-export me-2"></i> Export
+</a>
         <a href="{{ route('fees.create') }}" class="btn btn-primary px-4 py-2 rounded-3 shadow-sm border-0" style="background: #3b82f6;">
             <i class="fas fa-plus-circle me-2"></i> Add New Record
         </a>

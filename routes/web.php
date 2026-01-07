@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 
 
 
+Route::get('fees/export', [\App\Http\Controllers\FeeController::class, 'export'])->name('fees.export');
 Route::resource('fees', FeeController::class);
 
 Route::resource('courses', CourseController::class);
@@ -37,6 +38,10 @@ Route::get('/dashboard', function () {
     $pendingFees = DB::table('fees')->sum(DB::raw('amount - paid_amount'));
     return view('dashboard', compact('totalStudents', 'totalTeachers', 'coursesCount', 'totalFees', 'pendingFees'));
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+// Reports routes (generate and download)
+Route::post('/reports/fees', [\App\Http\Controllers\ReportController::class, 'generateFees'])->name('reports.fees')->middleware('auth');
+Route::get('/reports/download/{filename}', [\App\Http\Controllers\ReportController::class, 'download'])->name('reports.download')->middleware('auth');
 
 // JSON endpoint: return current total students (used by welcome page polling)
 Route::get('/stats/students', function () {
