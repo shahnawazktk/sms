@@ -118,7 +118,7 @@
 
         <div class="nav-label">Settings</div>
         
-        <a href="#" class="sidebar-link">
+        <a href="{{ route('profile.edit') }}" class="sidebar-link">
             <i class="fas fa-cog"></i> System Settings
         </a>
     </div>

@@ -96,7 +96,55 @@
         </div>
     </div>
 </div>
+{{-- Is section ko card ke bilkul neeche aur loop ke bahar paste karein --}}
 
-<p class="text-muted mt-3 small ps-2">Showing {{ $students->count() }} total registered students</p>
+<div class="d-flex justify-content-between align-items-center mt-4 px-2">
+    <div>
+        <p class="text-muted small mb-0">
+            Showing 
+            <strong>{{ $students->firstItem() ?? 0 }}</strong> 
+            to 
+            <strong>{{ $students->lastItem() ?? 0 }}</strong> 
+            of 
+            <strong>{{ $students->total() }}</strong> students
+        </p>
+    </div>
+    
+    <div class="pagination-wrapper">
+        {{-- Laravel default pagination links --}}
+        {{ $students->links('pagination::bootstrap-5') }}
+    </div>
+</div>
+
+<style>
+/* Pagination ko mazeed sundar banane ke liye CSS */
+.pagination-wrapper .pagination {
+    margin-bottom: 0;
+    gap: 5px;
+    display: flex;
+}
+
+.page-item .page-link {
+    border-radius: 8px !important;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    padding: 8px 16px;
+    color: #475569;
+}
+
+.page-item.active .page-link {
+    background-color: #3b82f6 !important;
+    color: white !important;
+    border: none;
+}
+
+.page-item.disabled .page-link {
+    color: #cbd5e1 !important;
+}
+</style>
+
+
+
+{{-- <p class="text-muted mt-3 small ps-2">Showing {{ $students->count() }} total registered students</p> --}}
 
 @endsection

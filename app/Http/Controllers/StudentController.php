@@ -8,12 +8,17 @@ use Illuminate\Http\Request;
 class StudentController extends Controller
 {
     // Show all students
-    public function index()
+  public function index()
 {
-    $students = Student::all();
-    $totalStudents = Student::count();  // 🔹 total students
+    // Pagination: 10 students per page
+    $students = Student::orderBy('id', 'desc')->paginate(5);
+
+    // Total students count (for card)
+    $totalStudents = Student::count();
+
     return view('students.index', compact('students', 'totalStudents'));
 }
+
 
     // public function index()
     // {
