@@ -1,0 +1,94 @@
+@extends('layouts.app')
+
+@section('header')
+    <header class="mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold text-dark mb-1">Analytics Overview</h2>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none">Home</a></li>
+                        <li class="breadcrumb-item active">Dashboard</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="text-muted small fw-bold text-uppercase">
+                <i class="far fa-calendar-alt me-1"></i> {{ date('F d, Y') }}
+            </div>
+        </div>
+    </header>
+@endsection
+
+@section('content')
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 bg-primary text-white p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="opacity-75 small fw-bold text-uppercase">Total Students</h6>
+                        <h3 class="fw-bold mb-0">{{ number_format($totalStudents ?? 0) }}</h3>
+                    </div>
+                    <i class="fas fa-user-graduate fs-1 opacity-25"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 text-white p-3 h-100" style="background: #6610f2;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="opacity-75 small fw-bold text-uppercase">Active Teachers</h6>
+                        <h3 class="fw-bold mb-0">{{ number_format($totalTeachers ?? 0) }}</h3>
+                    </div>
+                    <i class="fas fa-chalkboard-teacher fs-1 opacity-25"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 bg-info text-white p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="opacity-75 small fw-bold text-uppercase">Active Courses</h6>
+                        <h3 class="fw-bold mb-0">{{ $coursesCount ?? '0' }}</h3>
+                    </div>
+                    <i class="fas fa-book-open fs-1 opacity-25"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 bg-success text-white p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="opacity-75 small fw-bold text-uppercase">Fees Collected</h6>
+                        <h3 class="fw-bold mb-0">Rs. {{ number_format($totalFees ?? 0) }}</h3>
+                    </div>
+                    <i class="fas fa-hand-holding-usd fs-1 opacity-25"></i>
+                </div>
+                <div class="mt-2 pt-2 border-top border-white border-opacity-10">
+                    <span class="small opacity-75 fw-bold">
+                        <i class="fas fa-clock me-1"></i> Pending: Rs. {{ number_format($pendingFees ?? 0) }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <h5 class="fw-bold text-dark mb-3">Quick Actions</h5>
+            <div class="d-flex gap-2">
+                <a href="{{ route('students.create') }}" class="btn btn-white border shadow-sm rounded-3 px-3">
+                    <i class="fas fa-plus-circle text-primary me-2"></i>New Student
+                </a>
+                <a href="{{ route('teachers.create') }}" class="btn btn-white border shadow-sm rounded-3 px-3">
+                    <i class="fas fa-plus-circle text-info me-2"></i>New Teacher
+                </a>
+                <a href="#" class="btn btn-white border shadow-sm rounded-3 px-3">
+                    <i class="fas fa-print text-muted me-2"></i>Generate Reports
+                </a>
+            </div>
+        </div>
+    </div>
+@endsection
