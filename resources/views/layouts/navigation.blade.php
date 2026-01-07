@@ -106,7 +106,7 @@
             <i class="fas fa-chalkboard-teacher"></i> Teachers
         </a>
 
-        <a href="#" class="sidebar-link">
+        <a href="{{ route('courses.index') }}" class="sidebar-link">
             <i class="fas fa-book-open"></i> Courses
         </a>
 

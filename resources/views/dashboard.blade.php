@@ -50,7 +50,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="opacity-75 small fw-bold text-uppercase">Active Courses</h6>
-                        <h3 class="fw-bold mb-0">{{ $coursesCount ?? '0' }}</h3>
+                        <h3 class="fw-bold mb-0" id="coursesCount">{{ number_format($coursesCount ?? 0) }}</h3>
                     </div>
                     <i class="fas fa-book-open fs-1 opacity-25"></i>
                 </div>
@@ -85,6 +85,9 @@
                 <a href="{{ route('teachers.create') }}" class="btn btn-white border shadow-sm rounded-3 px-3">
                     <i class="fas fa-plus-circle text-info me-2"></i>New Teacher
                 </a>
+                <a href="{{ route('courses.create') }}" class="btn btn-white border shadow-sm rounded-3 px-3">
+                    <i class="fas fa-plus-circle text-info me-2"></i>New Course
+                </a>
                 <a href="#" class="btn btn-white border shadow-sm rounded-3 px-3">
                     <i class="fas fa-print text-muted me-2"></i>Generate Reports
                 </a>
@@ -92,3 +95,40 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    // small counter animator for dashboard cards
+    function animateValue(id, start, end, duration) {
+        const obj = document.getElementById(id);
+        if (!obj) return;
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString();
+            if (progress < 1) { window.requestAnimationFrame(step); }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    async function updateCoursesCount() {
+        try {
+            const res = await fetch('/stats/courses');
+            if (!res.ok) throw new Error('Network response was not ok');
+            const data = await res.json();
+            const el = document.getElementById('coursesCount');
+            const current = parseInt(el.textContent.replace(/,/g, '')) || 0;
+            animateValue('coursesCount', current, data.count, 800);
+        } catch (err) {
+            console.error('failed to fetch courses count', err);
+        }
+    }
+
+    // poll every 5 seconds while dashboard is open
+    document.addEventListener('DOMContentLoaded', () => {
+        updateCoursesCount();
+        setInterval(updateCoursesCount, 5000);
+    });
+</script>
+@endpush
