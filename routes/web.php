@@ -10,6 +10,7 @@ use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\Course;
 use App\Models\Fee;
+use App\Models\Attendance;
 use Illuminate\Support\Facades\DB;
 
 
@@ -36,7 +37,14 @@ Route::get('/dashboard', function () {
     $coursesCount = Course::count();
     $totalFees = Fee::sum('paid_amount');
     $pendingFees = DB::table('fees')->sum(DB::raw('amount - paid_amount'));
-    return view('dashboard', compact('totalStudents', 'totalTeachers', 'coursesCount', 'totalFees', 'pendingFees'));
+
+    // Attendance stats for today
+    $today = date('Y-m-d');
+    $presentStudents = Attendance::where('date', $today)->where('status', 'present')->count();
+    $absentStudents = $totalStudents - $presentStudents;
+    $attendancePercentage = $totalStudents > 0 ? round(($presentStudents / $totalStudents) * 100) : 0;
+
+    return view('dashboard', compact('totalStudents', 'totalTeachers', 'coursesCount', 'totalFees', 'pendingFees', 'presentStudents', 'absentStudents', 'attendancePercentage'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Reports routes (generate and download)
@@ -64,6 +72,16 @@ Route::get('/stats/fees', function () {
         'totalFees' => Fee::sum('paid_amount'),
         'pendingFees' => DB::table('fees')->sum(DB::raw('amount - paid_amount')),
     ]);
+});
+
+// JSON endpoint: return attendance stats for today
+Route::get('/stats/attendance', function () {
+    $today = date('Y-m-d');
+    $totalStudents = Student::count();
+    $present = Attendance::where('date', $today)->where('status', 'present')->count();
+    $absent = $totalStudents - $present;
+    $percentage = $totalStudents > 0 ? round(($present / $totalStudents) * 100) : 0;
+    return response()->json(['present' => $present, 'absent' => $absent, 'percentage' => $percentage]);
 });
 
 Route::middleware('auth')->group(function () {
