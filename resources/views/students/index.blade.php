@@ -2,11 +2,14 @@
 
 @section('content')
 <div class="container-fluid py-4" style="background: #f4f7fe; min-height: 100vh;">
-    
+
+    {{-- Header --}}
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
         <div>
             <h3 class="fw-black text-dark mb-1" style="letter-spacing: -1px;">Student Command Center</h3>
-            <p class="text-muted small mb-0"><i class="fas fa-chart-line me-1 text-primary"></i> Academic Year 2025-26 • Session: Autumn</p>
+            <p class="text-muted small mb-0">
+                <i class="fas fa-chart-line me-1 text-primary"></i> Academic Year 2025-26 • Session: Autumn
+            </p>
         </div>
         <div class="d-flex gap-2">
             <button class="btn btn-white shadow-sm border-0 px-3 rounded-3 text-primary fw-bold">
@@ -18,6 +21,7 @@
         </div>
     </div>
 
+    {{-- Info Cards --}}
     <div class="row g-4 mb-5">
         <div class="col-xl-3 col-md-6">
             <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
@@ -60,7 +64,9 @@
         </div>
     </div>
 
+    {{-- Students Table --}}
     <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        {{-- Table Header --}}
         <div class="card-header bg-white py-4 px-4 border-0">
             <div class="row align-items-center g-3">
                 <div class="col-md-4">
@@ -80,6 +86,7 @@
             </div>
         </div>
 
+        {{-- Table Body --}}
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light-gray">
@@ -95,12 +102,21 @@
                 <tbody>
                     @foreach($students as $student)
                     <tr class="hover-row shadow-sm-hover">
+                        {{-- Student Identity --}}
                         <td class="ps-4">
                             <div class="d-flex align-items-center">
-                                <div class="position-relative">
-                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($student->name) }}&background=6366f1&color=fff" 
-                                         class="rounded-circle shadow-sm me-3" width="48" height="48">
-                                    <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-2 border-white rounded-circle me-3"></span>
+                                <div class="position-relative me-3">
+                                    @php
+                                        $profileImage = $student->profile_image
+                                            ? asset('storage/' . $student->profile_image)
+                                            : 'https://ui-avatars.com/api/?name=' . urlencode($student->name) . '&background=6366f1&color=fff';
+                                    @endphp
+                                    <img src="{{ $profileImage }}" 
+                                         class="rounded-circle shadow-sm object-fit-cover" 
+                                         width="48" height="48"
+                                         alt="{{ $student->name }}"
+                                         onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($student->name) }}&background=6366f1&color=fff'">
+                                    <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-2 border-white rounded-circle"></span>
                                 </div>
                                 <div>
                                     <div class="fw-bold text-dark mb-0 fs-6">{{ $student->name }}</div>
@@ -108,11 +124,15 @@
                                 </div>
                             </div>
                         </td>
+
+                        {{-- Course --}}
                         <td>
                             <div class="badge bg-soft-info text-info border-0 px-3 py-2 rounded-pill fw-bold">
                                 {{ $student->course ?? 'Full Stack Dev' }}
                             </div>
                         </td>
+
+                        {{-- Academic Progress --}}
                         <td>
                             <div style="min-width: 140px;">
                                 <div class="d-flex justify-content-between x-small fw-bold mb-1">
@@ -124,12 +144,16 @@
                                 </div>
                             </div>
                         </td>
+
+                        {{-- Fee Status --}}
                         <td>
                             <span class="text-{{ rand(0,1) ? 'success' : 'danger' }} fw-bold small">
                                 <i class="fas fa-circle me-1" style="font-size: 8px;"></i>
                                 {{ rand(0,1) ? 'Cleared' : 'Pending PKR 4,500' }}
                             </span>
                         </td>
+
+                        {{-- Engagement --}}
                         <td>
                             <div class="avatar-group d-flex">
                                 <span class="badge bg-light text-dark fw-normal rounded-pill px-3">
@@ -137,14 +161,16 @@
                                 </span>
                             </div>
                         </td>
+
+                        {{-- Manage --}}
                         <td class="text-center pe-4">
                             <div class="dropdown">
                                 <button class="btn btn-icon btn-sm btn-light rounded-circle" data-bs-toggle="dropdown">
                                     <i class="fas fa-ellipsis-v"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-3">
-                                    <li><a class="dropdown-item py-2" href="#"><i class="fas fa-id-badge me-2 text-primary"></i> Profile Card</a></li>
-                                    <li><a class="dropdown-item py-2" href="#"><i class="fas fa-file-invoice me-2 text-warning"></i> View Ledger</a></li>
+                                    <li><a class="dropdown-item py-2" href="{{ route('students.show', $student->id) }}"><i class="fas fa-id-badge me-2 text-primary"></i> Profile Card</a></li>
+                                    <li><a class="dropdown-item py-2" href="{{ route('students.ledger', $student->id) }}"><i class="fas fa-file-invoice me-2 text-warning"></i> View Ledger</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item py-2 text-danger" href="#"><i class="fas fa-user-minus me-2"></i> Terminate</a></li>
                                 </ul>
@@ -154,31 +180,30 @@
                     @endforeach
                 </tbody>
             </table>
+
+            {{-- Pagination --}}
+            <div class="mt-3">
+                {{ $students->links() }}
+            </div>
         </div>
     </div>
 </div>
 
+{{-- Styles --}}
 <style>
-    /* Premium UX Enhancements */
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-    
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
     .fw-black { font-weight: 800; }
     .x-small { font-size: 11px; }
     .ls-1 { letter-spacing: 1px; }
-    
     .bg-soft-primary { background: #e0e7ff; }
     .bg-soft-danger { background: #fee2e2; }
     .bg-soft-info { background: #e0f2fe; }
-    
     .hover-row { transition: 0.3s; border-bottom: 1px solid #f1f5f9; }
     .hover-row:hover { background-color: #ffffff !important; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
-    
     .icon-shape { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
     .btn-white { background: #fff; color: #475569; }
     .btn-white.active { background: #3b82f6; color: #fff; }
-
-    /* Custom Scrollbar for Table */
     .table-responsive::-webkit-scrollbar { height: 6px; }
     .table-responsive::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 </style>

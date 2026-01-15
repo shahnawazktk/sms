@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 
 
 
+Route::get('students/{student}/ledger', [StudentController::class, 'ledger'])->name('students.ledger');
 
 Route::get('fees/export', [\App\Http\Controllers\FeeController::class, 'export'])->name('fees.export');
 Route::resource('fees', FeeController::class);

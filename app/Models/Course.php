@@ -13,4 +13,16 @@ class Course extends Model
         'code',
         'credit_hours',
     ];
+
+    // Course has many students
+    public function students()
+    {
+        return $this->hasMany(Student::class);
+    }
+
+    // Optional: course has many fees
+    public function fees()
+    {
+        return $this->hasMany(Fee::class);
+    }
 }
