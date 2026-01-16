@@ -9,14 +9,22 @@ use Illuminate\Support\Facades\Storage;
 class StudentController extends Controller
 {
     /**
-     * Display a paginated listing of students.
+     * Display a paginated listing of students (with status filter).
      */
-    public function index()
+    public function index(Request $request)
     {
-        $students = Student::orderBy('id', 'desc')->paginate(5);
+        $status = $request->get('status');
+
+        $students = Student::when($status, function ($query) use ($status) {
+                $query->where('status', $status);
+            })
+            ->latest('id')
+            ->paginate(5)
+            ->withQueryString();
+
         $totalStudents = Student::count();
 
-        return view('students.index', compact('students', 'totalStudents'));
+        return view('students.index', compact('students', 'totalStudents', 'status'));
     }
 
     /**
@@ -26,33 +34,6 @@ class StudentController extends Controller
     {
         return view('students.create');
     }
-    /**
- * Display the specified student profile.
- */
-public function show(Student $student)
-{
-    return view('students.show', compact('student'));
-}
-/**
- * Display the fee ledger of a student.
- */
-/**
- * Display the professional fee ledger for a student.
- */
-public function ledger(Student $student)
-{
-    // Load all fees for the student, latest first
-    $fees = $student->fees()->orderBy('date', 'asc')->get(); // Ascending by date
-
-    // Calculate total paid and total due
-    $totalPaid = $fees->sum('paid_amount');
-    $totalDue  = $fees->sum('due_amount');
-
-    // Return view with all necessary data
-    return view('students.ledger', compact('student', 'fees', 'totalPaid', 'totalDue'));
-}
-
-
 
     /**
      * Store a newly created student in storage.
@@ -64,23 +45,49 @@ public function ledger(Student $student)
             'email'         => 'required|email|unique:students,email',
             'phone'         => 'required',
             'dob'           => 'required|date',
-            'course'        => 'required',
+            'course_id'     => 'required|exists:courses,id',
             'gender'        => 'required',
             'address'       => 'required',
             'student_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        $data = $request->only(['name', 'email', 'phone', 'dob', 'course', 'gender', 'address']);
+        $data = $request->only([
+            'name','email','phone','dob',
+            'course_id','gender','address'
+        ]);
 
-        // Handle profile image if uploaded
         if ($request->hasFile('student_image')) {
-            $data['profile_image'] = $request->file('student_image')->store('students', 'public');
+            $data['profile_image'] =
+                $request->file('student_image')->store('students', 'public');
         }
 
         Student::create($data);
 
         return redirect()->route('students.index')
-                         ->with('success', 'Student admission completed successfully!');
+            ->with('success', 'Student admission completed successfully!');
+    }
+
+    /**
+     * Display the specified student profile.
+     */
+    public function show(Student $student)
+    {
+        return view('students.show', compact('student'));
+    }
+
+    /**
+     * Display the professional fee ledger for a student.
+     */
+    public function ledger(Student $student)
+    {
+        $fees = $student->fees()->orderBy('date', 'asc')->get();
+
+        $totalPaid = $fees->sum('paid_amount');
+        $totalDue  = $fees->sum('due_amount');
+
+        return view('students.ledger', compact(
+            'student', 'fees', 'totalPaid', 'totalDue'
+        ));
     }
 
     /**
@@ -92,7 +99,7 @@ public function ledger(Student $student)
     }
 
     /**
-     * Update the specified student in storage.
+     * Update the specified student.
      */
     public function update(Request $request, Student $student)
     {
@@ -101,43 +108,79 @@ public function ledger(Student $student)
             'email'         => 'required|email|unique:students,email,' . $student->id,
             'phone'         => 'required',
             'dob'           => 'required|date',
-            'course'        => 'required',
+            'course_id'     => 'required|exists:courses,id',
             'gender'        => 'required',
             'address'       => 'required',
             'student_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        $data = $request->only(['name', 'email', 'phone', 'dob', 'course', 'gender', 'address']);
+        $data = $request->only([
+            'name','email','phone','dob',
+            'course_id','gender','address'
+        ]);
 
-        // Handle profile image update
         if ($request->hasFile('student_image')) {
-            // Delete old image if exists
-            if ($student->profile_image && Storage::disk('public')->exists($student->profile_image)) {
+            if ($student->profile_image &&
+                Storage::disk('public')->exists($student->profile_image)) {
                 Storage::disk('public')->delete($student->profile_image);
             }
 
-            $data['profile_image'] = $request->file('student_image')->store('students', 'public');
+            $data['profile_image'] =
+                $request->file('student_image')->store('students', 'public');
         }
 
         $student->update($data);
 
         return redirect()->route('students.index')
-                         ->with('success', 'Student updated successfully!');
+            ->with('success', 'Student updated successfully!');
     }
 
     /**
-     * Remove the specified student from storage.
+     * Soft delete student (basic delete).
      */
     public function destroy(Student $student)
     {
-        // Delete profile image if exists
-        if ($student->profile_image && Storage::disk('public')->exists($student->profile_image)) {
-            Storage::disk('public')->delete($student->profile_image);
-        }
-
         $student->delete();
 
         return redirect()->route('students.index')
-                         ->with('success', 'Student deleted successfully!');
+            ->with('success', 'Student removed successfully!');
+    }
+
+    /**
+     * Terminate (Blacklist) the student with reason & date.
+     */
+    public function terminate(Request $request, Student $student)
+    {
+        if ($student->trashed()) {
+            return back()->with('error', 'Student is already terminated.');
+        }
+
+        $request->validate([
+            'termination_date'   => 'required|date',
+            'reason'             => 'required|string|max:255',
+            'remarks'            => 'nullable|string',
+        ]);
+
+        // Use MODEL business logic
+        $student->terminate(
+            $request->reason,
+            $request->remarks,
+            $request->termination_date
+        );
+
+        return redirect()->route('students.index')
+            ->with('success', 'Student terminated successfully.');
+    }
+
+    /**
+     * Restore terminated student.
+     */
+    public function restore($id)
+    {
+        $student = Student::withTrashed()->findOrFail($id);
+        $student->restoreStudent();
+
+        return redirect()->route('students.index')
+            ->with('success', 'Student restored successfully.');
     }
 }

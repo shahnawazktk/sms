@@ -18,13 +18,20 @@ use Illuminate\Support\Facades\DB;
 
 
 
-Route::get('students/{student}/ledger', [StudentController::class, 'ledger'])->name('students.ledger');
+
 
 Route::get('fees/export', [\App\Http\Controllers\FeeController::class, 'export'])->name('fees.export');
 Route::resource('fees', FeeController::class);
 
 Route::resource('courses', CourseController::class);
 Route::resource('students', StudentController::class);
+Route::get('students/{student}/ledger', [StudentController::class, 'ledger'])->name('students.ledger');
+Route::resource('students', StudentController::class);
+
+// Custom terminate route
+Route::delete('students/{student}/terminate', 
+    [StudentController::class, 'terminate']
+)->name('students.terminate');
 Route::resource('teachers', TeacherController::class);
 
 
